@@ -3,9 +3,11 @@ package com.dean.quickindexview;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -23,21 +25,67 @@ public class MainActivity extends AppCompatActivity implements QuickIndexView.On
 
     private static final String TAG = "MainActivity";
     private List<Person> mData;
-    private MyAdapter mMyAdapter;
     private ListView mLvMain;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        QuickIndexView mQiView = (QuickIndexView) findViewById(R.id.qi_view);
+        final QuickIndexView qiView = (QuickIndexView) findViewById(R.id.qi_view);
+        final TextView tvLetter = (TextView) findViewById(R.id.tv_letter);
         mLvMain = (ListView) findViewById(R.id.lv_main);
-        mQiView.setOnLetterSelectedListener(this);
         //初始化联系人数据
         mData = getPersons();
         //展示数据
-        mMyAdapter = new MyAdapter(this, R.layout.item_list, mData);
-        mLvMain.setAdapter(mMyAdapter);
+        mLvMain.setAdapter(new MyAdapter(this, R.layout.item_list, mData));
+        mLvMain.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+            }
+
+            //顶部字母的显示
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                Log.d(TAG, "firstVisibleItem:" + firstVisibleItem+" visibleItemCount:"+visibleItemCount);
+                View groupView = getNextVisibleGroupView(firstVisibleItem, visibleItemCount);
+                if (groupView != null) {
+                    Log.d(TAG, "groupView.getY():" + groupView.getY());
+                    Log.d(TAG, "groupView.getScrollY():" + groupView.getScrollY());
+                    if (groupView.getY() < tvLetter.getHeight()) {
+                        tvLetter.setY(groupView.getY()-tvLetter.getHeight());
+                    } else {
+                        tvLetter.setY(0);
+                    }
+                }else{
+                    tvLetter.setY(0);
+                }
+                if (firstVisibleItem >= 0 && firstVisibleItem < mData.size()) {
+                    Person person = mData.get(firstVisibleItem);
+                    Log.d(TAG, "person:" + person + " firstVisibleItem:" + firstVisibleItem);
+                    char ch = person.letter != null && person.letter.length() > 0 ? person.letter
+                            .charAt(0) : 'A';
+                    tvLetter.setText(ch + "");
+                }
+            }
+
+            private View getNextVisibleGroupView(int firstVisibleItem, int visibleItemCount) {
+                Log.d(TAG, "----------------------------------");
+                for (int i = firstVisibleItem; i <firstVisibleItem+ visibleItemCount; i++) {
+                    View childView = mLvMain.getChildAt(i-firstVisibleItem);
+                    ViewHolder viewHolder = (ViewHolder) childView.getTag();
+                    Log.d(TAG, "i:" + i + " " + viewHolder.tvName
+                            .getText() + " childView.getY():" + childView.getY());
+                    if (viewHolder.tvLetter.getVisibility() == View.VISIBLE && childView
+                            .getY() > 0) {
+                        Log.d(TAG, "下个分组是viewHolder.tvLetter.getText():" + viewHolder.tvLetter
+                                .getText());
+                        return childView;
+                    }
+                }
+                return null;
+            }
+        });
+        qiView.setOnLetterSelectedListener(this);
     }
 
     //初始化待显示的数据

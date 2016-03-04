@@ -5,15 +5,29 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.dean.quickindexview.MainActivity">
+
     <ListView
         android:id="@+id/lv_main"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
+
+    <TextView
+        android:id="@+id/tv_letter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:background="#757575"
+        android:paddingBottom="5dp"
+        android:paddingLeft="5dp"
+        android:paddingTop="5dp"
+        android:text="A"
+        android:textColor="@android:color/white"
+        android:textSize="24sp"/>
+
     <com.dean.quickindexview.view.QuickIndexView
         android:id="@+id/qi_view"
-        android:layout_alignParentRight="true"
-        android:background="@android:color/black"
         android:layout_width="30dp"
-        android:layout_height="match_parent"/>
-
+        android:layout_height="match_parent"
+        android:layout_alignParentRight="true"
+        android:background="@android:color/black"/>
 </RelativeLayout>

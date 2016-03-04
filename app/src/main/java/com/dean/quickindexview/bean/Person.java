@@ -9,6 +9,14 @@ public class Person implements Comparable<Person> {
         this.letter = letter;
     }
 
+    @Override
+    public String toString() {
+        return "Person{" +
+                "name='" + name + '\'' +
+                ", letter='" + letter + '\'' +
+                '}';
+    }
+
     public String name;
     public String letter;
 
