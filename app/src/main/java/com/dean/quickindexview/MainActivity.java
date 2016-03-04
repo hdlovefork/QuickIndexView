@@ -68,13 +68,16 @@ public class MainActivity extends AppCompatActivity implements QuickIndexView.On
                 }
             }
 
+            //获取可视区域的下一个可见的分组
             private View getNextVisibleGroupView(int firstVisibleItem, int visibleItemCount) {
                 Log.d(TAG, "----------------------------------");
                 for (int i = firstVisibleItem; i <firstVisibleItem+ visibleItemCount; i++) {
+                    //在可视区域查找下一个分组，getChildAt()方法只能查找可视范围
                     View childView = mLvMain.getChildAt(i-firstVisibleItem);
                     ViewHolder viewHolder = (ViewHolder) childView.getTag();
                     Log.d(TAG, "i:" + i + " " + viewHolder.tvName
                             .getText() + " childView.getY():" + childView.getY());
+                    //在可视区域查找，Y轴大于0并且可见意味着是一个可视分组
                     if (viewHolder.tvLetter.getVisibility() == View.VISIBLE && childView
                             .getY() > 0) {
                         Log.d(TAG, "下个分组是viewHolder.tvLetter.getText():" + viewHolder.tvLetter
@@ -141,17 +144,17 @@ public class MainActivity extends AppCompatActivity implements QuickIndexView.On
             Person prevPerson = position == 0 ? null : getItem(--position);
             String curChar = curPerson != null && curPerson.letter != null && curPerson.letter
                     .length() > 0 ? curPerson.letter
-                    .charAt(0) + "" : null;
+                    .charAt(0) + "" : "";
             String prevChar = prevPerson != null && prevPerson.letter != null && prevPerson.letter
                     .length() > 0 ? prevPerson.letter
-                    .charAt(0) + "" : null;
+                    .charAt(0) + "" : "";
             //当前人物姓氏首字母和他前面(--postion得到前面人物，人物已经排好顺序)
             //那个人物姓氏首字母相同的情况下不再显示字母标签，否则显示字母标签
             viewHolder.tvLetter
                     .setVisibility(curChar.equals(prevChar) ? View.GONE : View.VISIBLE);
             viewHolder.tvLetter
                     .setText(curChar);
-            viewHolder.tvName.setText(curPerson.name);
+            viewHolder.tvName.setText(curPerson!=null?curPerson.name:"");
             return convertView;
         }
     }
