@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity implements QuickIndexView.On
     private static final String TAG = "MainActivity";
     private List<Person> mData;
     private ListView mLvMain;
+    private TextView mTvBigLetter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +35,7 @@ public class MainActivity extends AppCompatActivity implements QuickIndexView.On
         final QuickIndexView qiView = (QuickIndexView) findViewById(R.id.qi_view);
         final TextView tvLetter = (TextView) findViewById(R.id.tv_letter);
         mLvMain = (ListView) findViewById(R.id.lv_main);
+        mTvBigLetter = (TextView) findViewById(R.id.tv_big_letter);
         //初始化联系人数据
         mData = getPersons();
         //展示数据
@@ -46,23 +48,26 @@ public class MainActivity extends AppCompatActivity implements QuickIndexView.On
             //顶部字母的显示
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                Log.d(TAG, "firstVisibleItem:" + firstVisibleItem+" visibleItemCount:"+visibleItemCount);
-                View groupView = getNextVisibleGroupView(firstVisibleItem, visibleItemCount);
-                if (groupView != null) {
-                    Log.d(TAG, "groupView.getY():" + groupView.getY());
-                    Log.d(TAG, "groupView.getScrollY():" + groupView.getScrollY());
-                    if (groupView.getY() < tvLetter.getHeight()) {
-                        tvLetter.setY(groupView.getY()-tvLetter.getHeight());
+                Log.d(TAG, "firstVisibleItem:" + firstVisibleItem + " visibleItemCount:" + visibleItemCount);
+                View nextGroupView = getNextVisibleGroupView(firstVisibleItem, visibleItemCount);
+                if (nextGroupView != null) {
+                    Log.d(TAG, "groupView.getY():" + nextGroupView.getY());
+                    Log.d(TAG, "groupView.getScrollY():" + nextGroupView.getScrollY());
+                    if (nextGroupView.getY() < tvLetter.getHeight()) {
+                        tvLetter.setY(nextGroupView.getY() - tvLetter
+                                .getHeight());//将当前字母分组条目挤出/拉入屏幕
                     } else {
-                        tvLetter.setY(0);
+                        tvLetter.setY(0);//当前字母分组条目呆在顶部不动
                     }
-                }else{
+                } else {
                     tvLetter.setY(0);
                 }
+                //设置顶部字母分组条目显示的字母
                 if (firstVisibleItem >= 0 && firstVisibleItem < mData.size()) {
                     Person person = mData.get(firstVisibleItem);
                     Log.d(TAG, "person:" + person + " firstVisibleItem:" + firstVisibleItem);
-                    char ch = person.letter != null && person.letter.length() > 0 ? person.letter
+                    char ch = person != null && person.letter != null && person.letter
+                            .length() > 0 ? person.letter
                             .charAt(0) : 'A';
                     tvLetter.setText(ch + "");
                 }
@@ -71,13 +76,14 @@ public class MainActivity extends AppCompatActivity implements QuickIndexView.On
             //获取可视区域的下一个可见的分组
             private View getNextVisibleGroupView(int firstVisibleItem, int visibleItemCount) {
                 Log.d(TAG, "----------------------------------");
-                for (int i = firstVisibleItem; i <firstVisibleItem+ visibleItemCount; i++) {
-                    //在可视区域查找下一个分组，getChildAt()方法只能查找可视范围
-                    View childView = mLvMain.getChildAt(i-firstVisibleItem);
+                for (int i = firstVisibleItem; i < firstVisibleItem + visibleItemCount; i++) {
+                    //在可视区域查找下一个分组，getChildAt()方法只能查找可视范围，第一个可见条目为0
+                    View childView = mLvMain
+                            .getChildAt(i - firstVisibleItem);//firstVisibleItem对应ListView的条目索引
                     ViewHolder viewHolder = (ViewHolder) childView.getTag();
                     Log.d(TAG, "i:" + i + " " + viewHolder.tvName
                             .getText() + " childView.getY():" + childView.getY());
-                    //在可视区域查找，Y轴大于0并且可见意味着是一个可视分组
+                    //在可视区域查找，分组条目的Y轴大于0并且可见意味着是下一个可视分组
                     if (viewHolder.tvLetter.getVisibility() == View.VISIBLE && childView
                             .getY() > 0) {
                         Log.d(TAG, "下个分组是viewHolder.tvLetter.getText():" + viewHolder.tvLetter
@@ -99,13 +105,17 @@ public class MainActivity extends AppCompatActivity implements QuickIndexView.On
             Person person = new Person(Cheeses.NAMES[i], pinyin);
             list.add(person);
         }
+        //联系人名字按字母排序
         Collections.sort(list);
         return list;
     }
 
-    //字母索引表被选中，滚动到相应姓氏的联系人
+    android.os.Handler mHandler = new android.os.Handler();
+
+    //字母索引表被选中，滚动到相应姓氏的第一位联系人
     @Override
     public void onLetterSelected(View view, char letter, int index) {
+        //计算ListView应该滚动到的位置
         int position = -1;
         for (int i = 0; i < mData.size(); i++) {
             Person person = mData.get(i);
@@ -114,9 +124,21 @@ public class MainActivity extends AppCompatActivity implements QuickIndexView.On
                 break;
             }
         }
+        //让ListView跟随字母表中选中的字母滚动到相应的字母分组条目
         if (position != -1) {
             mLvMain.setSelection(position);
         }
+        //在屏幕中放大显示字母索引表中选中的字母
+        mTvBigLetter.setText(letter + "");
+        mTvBigLetter.setVisibility(View.VISIBLE);
+        mHandler.removeCallbacksAndMessages(null);
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                //3秒后让放大的字母消失
+                mTvBigLetter.setVisibility(View.INVISIBLE);
+            }
+        }, 3000);
     }
 
     class MyAdapter extends ArrayAdapter<Person> {
@@ -154,7 +176,7 @@ public class MainActivity extends AppCompatActivity implements QuickIndexView.On
                     .setVisibility(curChar.equals(prevChar) ? View.GONE : View.VISIBLE);
             viewHolder.tvLetter
                     .setText(curChar);
-            viewHolder.tvName.setText(curPerson!=null?curPerson.name:"");
+            viewHolder.tvName.setText(curPerson != null ? curPerson.name : "");
             return convertView;
         }
     }

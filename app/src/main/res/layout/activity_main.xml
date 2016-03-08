@@ -5,12 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.dean.quickindexview.MainActivity">
-
+    <!--联系人列表-->
     <ListView
         android:id="@+id/lv_main"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
-
+    <!--ListView顶部显示当前组的拼音首字母-->
     <TextView
         android:id="@+id/tv_letter"
         android:layout_width="match_parent"
@@ -23,11 +23,24 @@
         android:text="A"
         android:textColor="@android:color/white"
         android:textSize="24sp"/>
-
+    <!--字母索引表-->
     <com.dean.quickindexview.view.QuickIndexView
         android:id="@+id/qi_view"
         android:layout_width="30dp"
         android:layout_height="match_parent"
         android:layout_alignParentRight="true"
         android:background="@android:color/black"/>
+    <!-- 放大显示当前选中的字母-->
+    <TextView
+        android:id="@+id/tv_big_letter"
+        android:gravity="center"
+        android:layout_width="100dp"
+        android:layout_height="70dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/shape_round_rect"
+        android:text="A"
+        android:visibility="invisible"
+        android:textColor="@android:color/white"
+        android:textSize="40sp"/>
+
 </RelativeLayout>
